@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./global.css";
 import { Sidebar } from "../components/Sidebar";
 
-const roboto = Roboto({
+const inter = Inter({
   subsets: ["latin"],
 });
 
@@ -18,13 +18,13 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${roboto.className} h-full antialiased`}
+      className={`${inter.className} h-full antialiased`}
     >
-      <body className="min-h-full bg-[#F5F7FB] text-slate-900">
+      <body className="min-h-full bg-[#F8FAFC] text-[#0F172A]">
         <Sidebar />
 
         <main className="min-h-screen pl-64">
-          <div className="mx-auto w-full max-w-[1400px] px-8 py-8">
+          <div className="mx-auto w-full max-w-[1600px] px-10 py-8">
             {children}
           </div>
         </main>

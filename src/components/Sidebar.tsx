@@ -45,7 +45,7 @@ export function Sidebar() {
     <aside className="fixed left-0 top-0 flex h-screen w-64 flex-col bg-[#243F8F] px-4 py-6 text-white">
       <div className="mb-8 px-3">
         <h1 className="text-xl font-bold tracking-tight">
-          AutoEmDia
+          CarManager
         </h1>
 
         <p className="mt-1 text-xs text-blue-200">
