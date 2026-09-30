@@ -22,7 +22,6 @@ type VeiculoInfo = {
   renavam: string;
   chassi: string;
   cor: string;
-  observacoes: string;
 };
 
 // Mock: em produção isso viria de uma busca pelo params.id
@@ -34,7 +33,6 @@ const VEICULO: VeiculoInfo = {
   renavam: "00123456789",
   chassi: "9BW...F421",
   cor: "Prata",
-  observacoes: "Revisão feita em agosto/2026.",
 };
 
 const OBRIGACOES_INICIAIS: Obrigacao[] = [
@@ -63,50 +61,12 @@ const STATUS_CONFIG: Record<StatusObrigacao, { label: string; className: string 
   atrasado: { label: "Atrasado", className: "bg-[#FEF2F2] text-[#DC2626]" },
 };
 
-function formatarMoeda(valor: number) {
-  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-// Nova data = mesmo dia/mês do vencimento original, no ano seguinte.
-function recalcularProximoVencimento(vencimentoAtual: string) {
-  const [dia, mes, ano] = vencimentoAtual.split("/");
-  return `${dia}/${mes}/${Number(ano) + 1}`;
-}
 
 export default function VeiculoDetalhes() {
   const [obrigacoes, setObrigacoes] = useState(OBRIGACOES_INICIAIS);
   const [obrigacaoSelecionada, setObrigacaoSelecionada] = useState<Obrigacao | null>(null);
   const [dataPagamento, setDataPagamento] = useState("");
-
-  function abrirModalPagamento(obrigacao: Obrigacao) {
-    setObrigacaoSelecionada(obrigacao);
-    setDataPagamento("");
-  }
-
-  function fecharModal() {
-    setObrigacaoSelecionada(null);
-  }
-
-  function confirmarPagamento() {
-    if (!obrigacaoSelecionada) return;
-
-    const novoVencimento = recalcularProximoVencimento(obrigacaoSelecionada.vencimento);
-
-    setObrigacoes(
-      obrigacoes.map((obrigacao) =>
-        obrigacao.id === obrigacaoSelecionada.id
-          ? {
-              ...obrigacao,
-              status: "pago",
-              dataPagamento,
-              vencimento: novoVencimento,
-            }
-          : obrigacao
-      )
-    );
-
-    fecharModal();
-  }
+  
 
   return (
     <div className="flex flex-col gap-6">
@@ -151,12 +111,6 @@ export default function VeiculoDetalhes() {
           <div className="text-xs uppercase text-[#64748B]">Chassi</div>
           <div className="text-sm font-semibold text-[#0F172A]">{VEICULO.chassi}</div>
         </div>
-        {VEICULO.observacoes && (
-          <div className="col-span-3">
-            <div className="text-xs uppercase text-[#64748B]">Observações</div>
-            <div className="text-sm text-[#0F172A]">{VEICULO.observacoes}</div>
-          </div>
-        )}
       </div>
 
       <div>
@@ -180,7 +134,7 @@ export default function VeiculoDetalhes() {
               {obrigacoes.map((obrigacao) => (
                 <tr key={obrigacao.id} className="border-b border-[#E2E8F0] last:border-0">
                   <td className="px-4 py-3 font-semibold text-[#0F172A]">{obrigacao.tipo}</td>
-                  <td className="px-4 py-3 text-[#0F172A]">{formatarMoeda(obrigacao.valor)}</td>
+                  <td className="px-4 py-3 text-[#0F172A]">{obrigacao.valor}</td>
                   <td className="px-4 py-3 text-[#0F172A]">{obrigacao.vencimento}</td>
                   <td className="px-4 py-3 text-[#0F172A]">{obrigacao.dataPagamento ?? "—"}</td>
                   <td className="px-4 py-3">
@@ -191,7 +145,6 @@ export default function VeiculoDetalhes() {
                   <td className="px-4 py-3 text-right">
                     {obrigacao.status !== "pago" && (
                       <button
-                        onClick={() => abrirModalPagamento(obrigacao)}
                         className="font-semibold text-[#0EA5E9] hover:underline"
                       >
                         Marcar como pago
@@ -230,7 +183,7 @@ export default function VeiculoDetalhes() {
                 Próximo vencimento recalculado
               </div>
               <div className="mt-1 text-xl font-extrabold text-[#0F172A]">
-                {recalcularProximoVencimento(obrigacaoSelecionada.vencimento)}
+                {obrigacaoSelecionada.vencimento}
               </div>
               <div className="mt-2 text-xs text-[#64748B]">
                 Renovação anual: nova data = mesmo dia/mês do vencimento
@@ -240,13 +193,11 @@ export default function VeiculoDetalhes() {
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={fecharModal}
                 className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-semibold text-[#0F172A]"
               >
                 Cancelar
               </button>
               <button
-                onClick={confirmarPagamento}
                 disabled={!dataPagamento}
                 className="rounded-lg bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >

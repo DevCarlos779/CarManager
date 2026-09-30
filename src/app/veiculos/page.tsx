@@ -75,34 +75,7 @@ const STATUS_CONFIG: Record<Status, { label: string; className: string }> = {
   "em-dia": { label: "Em dia", className: "bg-[#F0FDF4] text-[#16A34A]" },
 };
 
-type StatusFilter = "todos" | Status;
-type PendenciaFilter = "todos" | "com-pendencia" | "sem-pendencia";
-type SortKey = "nome" | "vencimento";
-
 export default function Veiculos() {
-  const [busca, setBusca] = useState("");
-  const [statusFiltro, setStatusFiltro] = useState<StatusFilter>("todos");
-  const [pendenciaFiltro, setPendenciaFiltro] =
-    useState<PendenciaFilter>("todos");
-  const [ordenacao, setOrdenacao] = useState<SortKey>("nome");
-
-  const veiculosFiltrados = MOCK_VEICULOS.filter((v) => {
-    const buscaMatch =
-      v.nome.toLowerCase().includes(busca.toLowerCase()) ||
-      v.placa.toLowerCase().includes(busca.toLowerCase());
-
-    const statusMatch = statusFiltro === "todos" || v.status === statusFiltro;
-
-    const pendenciaMatch =
-      pendenciaFiltro === "todos" ||
-      (pendenciaFiltro === "com-pendencia" && v.pendencias > 0) ||
-      (pendenciaFiltro === "sem-pendencia" && v.pendencias === 0);
-
-    return buscaMatch && statusMatch && pendenciaMatch;
-  }).sort((a, b) => {
-    if (ordenacao === "nome") return a.nome.localeCompare(b.nome);
-    return a.proximoVencimento.localeCompare(b.proximoVencimento);
-  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -126,15 +99,11 @@ export default function Veiculos() {
 
       <div className="flex flex-wrap items-center gap-3">
         <input
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por nome ou placa..."
           className="h-10 min-w-[220px] flex-1 rounded-lg border border-[#E2E8F0] px-3.5 text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/30"
         />
 
         <select
-          value={statusFiltro}
-          onChange={(e) => setStatusFiltro(e.target.value as StatusFilter)}
           className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/30"
         >
           <option value="todos">Todos os status</option>
@@ -144,10 +113,6 @@ export default function Veiculos() {
         </select>
 
         <select
-          value={pendenciaFiltro}
-          onChange={(e) =>
-            setPendenciaFiltro(e.target.value as PendenciaFilter)
-          }
           className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/30"
         >
           <option value="todos">Com ou sem pendência</option>
@@ -156,8 +121,6 @@ export default function Veiculos() {
         </select>
 
         <select
-          value={ordenacao}
-          onChange={(e) => setOrdenacao(e.target.value as SortKey)}
           className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#1E3A8A]/30"
         >
           <option value="nome">Ordenar por nome</option>
@@ -180,7 +143,7 @@ export default function Veiculos() {
             </tr>
           </thead>
           <tbody>
-            {veiculosFiltrados.map((v) => (
+            {MOCK_VEICULOS.map((v) => (
               <tr
                 key={v.id}
                 className="border-b border-[#E2E8F0] last:border-0 hover:bg-[#F8FAFC]"
@@ -216,7 +179,7 @@ export default function Veiculos() {
               </tr>
             ))}
 
-            {veiculosFiltrados.length === 0 && (
+            {MOCK_VEICULOS.length === 0 && (
               <tr>
                 <td
                   colSpan={8}
