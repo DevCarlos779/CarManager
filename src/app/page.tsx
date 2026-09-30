@@ -1,11 +1,3 @@
-import {
-  Car,
-  CircleAlert,
-  CircleCheck,
-  Clock3,
-  Pencil,
-  Trash2,
-} from "lucide-react";
 import FilterButton from "../components/FilterButton";
 import SummaryCard from "../components/SummaryCard";
 import VehicleCard from "../components/VehicleCard";
