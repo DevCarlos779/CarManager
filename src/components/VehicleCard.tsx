@@ -1,18 +1,25 @@
 import { Car, Pencil, Trash2 } from "lucide-react";
-import { vehicle } from "../app/page";
 import Link from "next/link";
+import { Vehicle } from "../types/typeVeiculos";
 
 export default function VehicleCard({
   vehicle,
-  styles,
+  styles
 }: {
-  vehicle: vehicle;
+  vehicle: Vehicle;
   styles: {
     border: string;
     badge: string;
     text: string;
   };
 }) {
+
+  const obrigacao = vehicle.obrigacoes.find(
+    (obrigacao) => obrigacao.status === "atrasado"
+  ) ?? vehicle.obrigacoes.find(
+    (obrigacao) => obrigacao.status === "proximo"
+  );
+
   return (
     <Link href={`/veiculos/${vehicle.id}`}
       className={`flex min-h-[64px] items-center gap-4 rounded-xl border border-[#E2E8F0] border-l-4 bg-white px-4 py-3 shadow-[0_1px_3px_rgba(15,23,42,0.04)] ${styles.border}`}
@@ -28,12 +35,12 @@ export default function VehicleCard({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h3 className="truncate text-sm font-bold text-[#0F172A]">
-            {vehicle.name}
+            {vehicle.modelo}
           </h3>
         </div>
 
         <p className="mt-0.5 text-xs text-[#64748B]">
-          {vehicle.plate}
+          {vehicle.placa}
           <span className="mx-1">·</span>
           RENAVAM {vehicle.renavam}
         </p>
@@ -43,17 +50,18 @@ export default function VehicleCard({
         <span
           className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${styles.badge}`}
         >
-          {vehicle.status}
+          {obrigacao?.status}
         </span>
 
         <p className={`text-xs font-medium ${styles.text}`}>
-          {vehicle.type
-            ? `${vehicle.type} · ${vehicle.status === "Atrasado" ? "venceu" : ""} ${vehicle.date}`
-            : vehicle.date}
+          {obrigacao
+            ? `${
+                obrigacao.status === "atrasado" ? "venceu" : "vence"
+              } ${obrigacao.vencimento}`
+            : "Nenhuma obrigação"}
         </p>
       </div>
-
-      
+    
     </Link>
   );
 }
