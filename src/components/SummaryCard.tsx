@@ -4,7 +4,7 @@ export default function SummaryCard({
   valueClass,
 }: {
   title: string;
-  value: string;
+  value: number;
   valueClass: string;
 }) {
   return (

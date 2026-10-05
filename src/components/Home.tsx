@@ -7,50 +7,6 @@ interface HomeProps {
     vehicles: Vehicle[];
 }
 
-// export interface vehicle {
-//  id: number;
-//  name: string;
-//  plate: string;
-//  renavam: string;
-//  status: string;
-//  type: string;
-//  date: string;
-//  color: string;
-// };
-
-// const vehicles: vehicle[] = [
-//   {
-//     id: 1,
-//     name: "Honda Civic",
-//     plate: "PBH-2026",
-//     renavam: "00123456789",
-//     status: "Atrasado",
-//     type: "IPVA",
-//     date: "10/09",
-//     color: "danger",
-//   },
-//   {
-//     id: 2,
-//     name: "Toyota Corolla",
-//     plate: "TCR-1010",
-//     renavam: "00987654321",
-//     status: "Próximo",
-//     type: "Licenciamento",
-//     date: "05/10",
-//     color: "warning",
-//   },
-//   {
-//     id: 3,
-//     name: "Fiat Argo",
-//     plate: "FAR-3030",
-//     renavam: "00555999111",
-//     status: "Em dia",
-//     type: "",
-//     date: "Próximo em 90 dias",
-//     color: "success",
-//   },
-// ];
-
 const statusStyles = {
   danger: {
     border: "border-l-[#DC2626]",
@@ -70,6 +26,31 @@ const statusStyles = {
 };
 
 export default function Home({vehicles}: HomeProps) {
+
+  const filteredVehiclesIsNearExpiry = vehicles.filter((vehicle) => {
+    return vehicle.obrigacoes.some((obrigacao) => {
+      const [dia, mes, ano] = obrigacao.vencimento.split("/").map(Number);
+      const anoCompleto = ano < 100 ? 2000 + ano : ano;
+      const vencimento = new Date(anoCompleto, mes - 1, dia);
+
+      const hoje = new Date();
+      hoje.setHours(0, 0, 0, 0);
+
+      const umMesAntes = new Date(vencimento);
+      umMesAntes.setMonth(umMesAntes.getMonth() - 1);
+
+      return hoje >= umMesAntes && hoje < vencimento;
+    });
+  });
+
+  const filteredVehiclesIsExpiry = vehicles.filter((vehicle) => {
+    return vehicle.obrigacoes.some((obrigacao) => obrigacao.status == "atrasado");
+  });
+
+  const qtdVehiclesIsNearExpiry = filteredVehiclesIsNearExpiry.length;
+  const qtdVehiclesIsExpiry = filteredVehiclesIsExpiry.length;
+  const qtdVehiclesIsPaid = vehicles.length - qtdVehiclesIsNearExpiry - qtdVehiclesIsExpiry;
+
   return (
     <div className="min-h-screen">
       <header className="mb-8 flex items-start justify-between">
@@ -91,25 +72,25 @@ export default function Home({vehicles}: HomeProps) {
       <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Total de veículos"
-          value="4"
+          value={vehicles.length}
           valueClass="text-[#0F172A]"
         />
 
         <SummaryCard
           title="Próximos"
-          value="2"
+          value={qtdVehiclesIsNearExpiry}
           valueClass="text-[#F59E0B]"
         />
 
         <SummaryCard
           title="Atrasados"
-          value="1"
+          value={qtdVehiclesIsExpiry}
           valueClass="text-[#DC2626]"
         />
 
         <SummaryCard
           title="Realizados"
-          value="8"
+          value={qtdVehiclesIsPaid}
           valueClass="text-[#16A34A]"
         />
       </section>
