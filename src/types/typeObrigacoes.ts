@@ -4,5 +4,5 @@ export interface Obrigacao {
   valor: number;
   vencimento: string;
   dataPagamento: string | null;
-  status: "atrasado" | "proximo" | "pago";
+  status: "atrasado" | "em-dia";
 }
