@@ -81,10 +81,6 @@ export default function Home({vehicles}: HomeProps) {
             Acompanhe a situação dos seus veículos
           </p>
         </div>
-
-        <button className="flex h-10 items-center rounded-lg bg-[#1E3A8A] px-4 text-sm font-semibold text-white transition hover:bg-[#172F70]">
-          + Adicionar veículo
-        </button>
       </header>
 
       <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
