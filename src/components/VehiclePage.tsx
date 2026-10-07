@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { Vehicle } from "../types/typeVeiculos";
 
 type StatusObrigacao = "pago" | "pendente" | "proximo" | "atrasado";
 
@@ -14,26 +15,6 @@ type Obrigacao = {
   status: StatusObrigacao;
 };
 
-type VeiculoInfo = {
-  marca: string;
-  modelo: string;
-  ano: number;
-  placa: string;
-  renavam: string;
-  chassi: string;
-  cor: string;
-};
-
-// Mock: em produção isso viria de uma busca pelo params.id
-const VEICULO: VeiculoInfo = {
-  marca: "Honda",
-  modelo: "Civic EXL",
-  ano: 2021,
-  placa: "PBH-2026",
-  renavam: "00123456789",
-  chassi: "9BW...F421",
-  cor: "Prata",
-};
 
 const OBRIGACOES_INICIAIS: Obrigacao[] = [
   {
@@ -54,19 +35,25 @@ const OBRIGACOES_INICIAIS: Obrigacao[] = [
   },
 ];
 
-const STATUS_CONFIG: Record<StatusObrigacao, { label: string; className: string }> = {
+const STATUS_CONFIG: Record<
+  StatusObrigacao,
+  { label: string; className: string }
+> = {
   pago: { label: "Pago", className: "bg-[#F0FDF4] text-[#16A34A]" },
   pendente: { label: "Pendente", className: "bg-[#F1F5F9] text-[#64748B]" },
   proximo: { label: "Próximo", className: "bg-[#FFFBEB] text-[#F59E0B]" },
   atrasado: { label: "Atrasado", className: "bg-[#FEF2F2] text-[#DC2626]" },
 };
 
+interface VehicleDetails {
+  vehicle: Vehicle;
+}
 
-export default function VeiculoDetalhes() {
+export default function VehicleDetails({ vehicle }: VehicleDetails) {
   const [obrigacoes, setObrigacoes] = useState(OBRIGACOES_INICIAIS);
-  const [obrigacaoSelecionada, setObrigacaoSelecionada] = useState<Obrigacao | null>(null);
+  const [obrigacaoSelecionada, setObrigacaoSelecionada] =
+    useState<Obrigacao | null>(null);
   const [dataPagamento, setDataPagamento] = useState("");
-  
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,37 +66,49 @@ export default function VeiculoDetalhes() {
 
       <div>
         <h1 className="text-2xl font-extrabold text-[#0F172A]">
-          {VEICULO.marca} {VEICULO.modelo}
+          {vehicle.marca} {vehicle.modelo}
         </h1>
         <p className="mt-1 text-sm text-[#64748B]">
-          {VEICULO.placa} · Ano {VEICULO.ano}
+          {vehicle.placa} · Ano {vehicle.ano}
         </p>
       </div>
 
       <div className="grid grid-cols-3 gap-4 rounded-xl border border-[#E2E8F0] bg-white p-5 shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
         <div>
           <div className="text-xs uppercase text-[#64748B]">Marca</div>
-          <div className="text-sm font-semibold text-[#0F172A]">{VEICULO.marca}</div>
+          <div className="text-sm font-semibold text-[#0F172A]">
+            {vehicle.marca}
+          </div>
         </div>
         <div>
           <div className="text-xs uppercase text-[#64748B]">Modelo</div>
-          <div className="text-sm font-semibold text-[#0F172A]">{VEICULO.modelo}</div>
+          <div className="text-sm font-semibold text-[#0F172A]">
+            {vehicle.modelo}
+          </div>
         </div>
         <div>
           <div className="text-xs uppercase text-[#64748B]">Cor</div>
-          <div className="text-sm font-semibold text-[#0F172A]">{VEICULO.cor}</div>
+          <div className="text-sm font-semibold text-[#0F172A]">
+            {vehicle.cor}
+          </div>
         </div>
         <div>
           <div className="text-xs uppercase text-[#64748B]">Placa</div>
-          <div className="text-sm font-semibold text-[#0F172A]">{VEICULO.placa}</div>
+          <div className="text-sm font-semibold text-[#0F172A]">
+            {vehicle.placa}
+          </div>
         </div>
         <div>
           <div className="text-xs uppercase text-[#64748B]">RENAVAM</div>
-          <div className="text-sm font-semibold text-[#0F172A]">{VEICULO.renavam}</div>
+          <div className="text-sm font-semibold text-[#0F172A]">
+            {vehicle.renavam}
+          </div>
         </div>
         <div>
           <div className="text-xs uppercase text-[#64748B]">Chassi</div>
-          <div className="text-sm font-semibold text-[#0F172A]">{VEICULO.chassi}</div>
+          <div className="text-sm font-semibold text-[#0F172A]">
+            {vehicle.chassi}
+          </div>
         </div>
       </div>
 
@@ -132,21 +131,32 @@ export default function VeiculoDetalhes() {
             </thead>
             <tbody>
               {obrigacoes.map((obrigacao) => (
-                <tr key={obrigacao.id} className="border-b border-[#E2E8F0] last:border-0">
-                  <td className="px-4 py-3 font-semibold text-[#0F172A]">{obrigacao.tipo}</td>
-                  <td className="px-4 py-3 text-[#0F172A]">{obrigacao.valor}</td>
-                  <td className="px-4 py-3 text-[#0F172A]">{obrigacao.vencimento}</td>
-                  <td className="px-4 py-3 text-[#0F172A]">{obrigacao.dataPagamento ?? "—"}</td>
+                <tr
+                  key={obrigacao.id}
+                  className="border-b border-[#E2E8F0] last:border-0"
+                >
+                  <td className="px-4 py-3 font-semibold text-[#0F172A]">
+                    {obrigacao.tipo}
+                  </td>
+                  <td className="px-4 py-3 text-[#0F172A]">
+                    {obrigacao.valor}
+                  </td>
+                  <td className="px-4 py-3 text-[#0F172A]">
+                    {obrigacao.vencimento}
+                  </td>
+                  <td className="px-4 py-3 text-[#0F172A]">
+                    {obrigacao.dataPagamento ?? "—"}
+                  </td>
                   <td className="px-4 py-3">
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_CONFIG[obrigacao.status].className}`}>
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-bold ${STATUS_CONFIG[obrigacao.status].className}`}
+                    >
                       {STATUS_CONFIG[obrigacao.status].label}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
                     {obrigacao.status !== "pago" && (
-                      <button
-                        className="font-semibold text-[#0EA5E9] hover:underline"
-                      >
+                      <button className="font-semibold text-[#0EA5E9] hover:underline">
                         Marcar como pago
                       </button>
                     )}
@@ -165,7 +175,7 @@ export default function VeiculoDetalhes() {
               Marcar {obrigacaoSelecionada.tipo} como pago
             </h3>
             <p className="mb-4 text-sm text-[#64748B]">
-              {VEICULO.marca} {VEICULO.modelo} · {VEICULO.placa}
+              {vehicle.marca} {vehicle.modelo} · {vehicle.placa}
             </p>
 
             <label className="mb-1 block text-xs font-semibold text-[#64748B]">
@@ -192,9 +202,7 @@ export default function VeiculoDetalhes() {
             </div>
 
             <div className="flex justify-end gap-3">
-              <button
-                className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-semibold text-[#0F172A]"
-              >
+              <button className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-semibold text-[#0F172A]">
                 Cancelar
               </button>
               <button
