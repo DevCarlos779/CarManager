@@ -220,10 +220,10 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
         </select>
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
+      <div className="max-h-[60vh] overflow-auto rounded-xl border border-[#E2E8F0] bg-white shadow-[0_1px_3px_rgba(15,23,42,0.08)]">
         <table className="w-full min-w-[820px] border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-left text-xs font-semibold uppercase tracking-wide text-[#64748B]">
+          <thead className="[&_th]:sticky [&_th]:top-0 [&_th]:z-10 [&_th]:bg-[#F8FAFC] [&_th]:shadow-[inset_0_-1px_0_#E2E8F0]">
+            <tr className="text-left text-xs font-semibold uppercase tracking-wide text-[#64748B]">
               <th className="px-4 py-3">Veículo</th>
               <th className="px-4 py-3">Ano</th>
               <th className="px-4 py-3">Placa</th>
@@ -285,7 +285,7 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
                         type="button"
                         title="Excluir veículo"
                         aria-label={`Excluir ${v.marca} ${v.modelo}`}
-                        className="cursor-pointer rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-[#FEF2F2] hover:text-[#DC2626]"
+                        className="cursor-pointer rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-[#FEF2F2] hover:text-[#DC2626] disabled:cursor-not-allowed disabled:opacity-50"
                         disabled={isPending}
                         onClick={() => handleExcluir(v)}
                       >

@@ -151,7 +151,7 @@ export default function Home({ vehicles }: HomeProps) {
           </FilterButton>
         </div>
 
-        <div className="space-y-3">
+        <div className="max-h-[60vh] space-y-3 overflow-y-auto p-1 pr-2">
           {filteredVehicles.length > 0 ? (
             filteredVehicles.map((vehicle) => {
               return <VehicleCard key={vehicle.id} vehicle={vehicle} />;
