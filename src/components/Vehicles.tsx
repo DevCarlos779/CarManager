@@ -5,6 +5,7 @@ import { Vehicle } from "../types/typeVeiculos";
 import { Obrigacao } from "../types/typeObrigacoes";
 import { useState } from "react";
 import AddVehicleModal from "./AddVehicleModal";
+import { criarVeiculo } from "../app/actions/veiculos";
 
 type Status = "atrasado" | "proximo" | "em-dia";
 
@@ -39,13 +40,12 @@ interface getProximaObrigacaoReturn {
 }
 
 export default function Vehicles({ vehicles }: VehiclesPageProps) {
-  const [vehiclesState, setVehiclesState] = useState(vehicles);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [ordenacao, setOrdenacao] = useState("nome");
   const [modalAberto, setModalAberto] = useState(false);
 
-  const filteredVehiclesIsNearExpiry = vehiclesState.filter((vehicle) => {
+  const filteredVehiclesIsNearExpiry = vehicles.filter((vehicle) => {
     return vehicle.obrigacoes.some((obrigacao) => {
       const [dia, mes, ano] = obrigacao.vencimento.split("/").map(Number);
       const anoCompleto = ano < 100 ? 2000 + ano : ano;
@@ -61,13 +61,13 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
     });
   });
 
-  const filteredVehiclesIsExpiry = vehiclesState.filter((vehicle) => {
+  const filteredVehiclesIsExpiry = vehicles.filter((vehicle) => {
     return vehicle.obrigacoes.some(
       (obrigacao) => obrigacao.status == "atrasado",
     );
   });
 
-  const filteredVehiclesIsPaid = vehiclesState.filter(
+  const filteredVehiclesIsPaid = vehicles.filter(
     (vehicle) =>
       !filteredVehiclesIsExpiry.includes(vehicle) &&
       !filteredVehiclesIsNearExpiry.includes(vehicle),
@@ -127,7 +127,7 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
     }
   }
 
-  const vehiclesWithStatus = vehiclesState.map((vehicle) =>
+  const vehiclesWithStatus = vehicles.map((vehicle) =>
     verificarStatusVeiculo(vehicle),
   );
 
@@ -273,13 +273,8 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
       <AddVehicleModal
         isOpen={modalAberto}
         onClose={() => setModalAberto(false)}
-        onSave={(novoVeiculo) => {
-          const veiculoComId: Vehicle = {
-            ...novoVeiculo,
-            id: crypto.randomUUID(),
-          };
-          setVehiclesState((prev) => [...prev, veiculoComId]);
-          // aqui depois entra a chamada real pro Firebase (addDoc)
+        onSave={async (novoVeiculo) => {
+          await criarVeiculo(novoVeiculo);
         }}
       />
     </div>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Modal from "./Modal";
 import { Vehicle } from "../types/typeVeiculos";
+import { Obrigacao } from "../types/typeObrigacoes";
 
 interface AddVehicleModalProps {
   isOpen: boolean;
@@ -23,25 +24,104 @@ export default function AddVehicleModal({
   const [ano, setAno] = useState(0);
   const [pagaIPVA, setPagaIPVA] = useState<boolean | null>(null);
   const [dataIPVA, setDataIPVA] = useState("");
+  const [foiPagoUltimoIPVA, setFoiPagoUltimoIPVA] = useState(false);
   const [dataLicenciamento, setDataLicenciamento] = useState("");
+  const [foiPagoUltimoLicenciamento, setFoiPagoUltimoLicenciamento] =
+    useState(false);
 
   const [erro, setErro] = useState("");
+
+  function formatarData(data: string): string {
+    const [ano, mes, dia] = data.split("-");
+    return `${dia}/${mes}/${ano}`;
+  }
+
+  function calcularStatus(
+    dataISO: string,
+    foiPago: boolean,
+  ): Obrigacao["status"] {
+    if (foiPago) return "em-dia";
+
+    const [ano, mes, dia] = dataISO.split("-").map(Number);
+    const vencimento = new Date(ano, mes - 1, dia);
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    return hoje > vencimento ? "atrasado" : "em-dia";
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (
-      !marca.trim() ||
-      !modelo.trim() ||
-      !placa.trim() ||
-      !renavam.trim() ||
-      !ano
-    ) {
-      setErro("Preencha marca, modelo, placa, renavam e ano.");
-      return;
+    if (pagaIPVA) {
+      if (
+        !marca.trim() ||
+        !modelo.trim() ||
+        !placa.trim() ||
+        !renavam.trim() ||
+        !ano ||
+        !dataIPVA ||
+        !dataLicenciamento
+      ) {
+        setErro(
+          "Preencha marca, modelo, placa, renavam, ano, data IPVA e data de licenciamento.",
+        );
+        return;
+      }
+    } else {
+      if (
+        !marca.trim() ||
+        !modelo.trim() ||
+        !placa.trim() ||
+        !renavam.trim() ||
+        !ano ||
+        !dataLicenciamento
+      ) {
+        setErro(
+          "Preencha marca, modelo, placa, renavam, ano e data de licenciamento.",
+        );
+        return;
+      }
     }
 
-    onSave({ marca, modelo, placa, renavam, ano, cor } as Omit<Vehicle, "id">);
+    let obrigacoes: Obrigacao[];
+
+    if (pagaIPVA) {
+      obrigacoes = [
+        {
+          id: crypto.randomUUID(),
+          tipo: "IPVA",
+          vencimento: formatarData(dataIPVA),
+          dataPagamento: null,
+          status: calcularStatus(dataIPVA, foiPagoUltimoIPVA),
+        },
+        {
+          id: crypto.randomUUID(),
+          tipo: "Licenciamento",
+          vencimento: formatarData(dataLicenciamento),
+          dataPagamento: null,
+          status: calcularStatus(dataIPVA, foiPagoUltimoIPVA),
+        },
+      ];
+    } else {
+      obrigacoes = [
+        {
+          id: crypto.randomUUID(),
+          tipo: "Licenciamento",
+          vencimento: formatarData(dataLicenciamento),
+          dataPagamento: null,
+          status: calcularStatus(dataIPVA, foiPagoUltimoIPVA),
+        },
+      ];
+    }
+
+    onSave({ marca, modelo, placa, renavam, ano, cor, obrigacoes } as Omit<
+      Vehicle,
+      "id"
+    >);
+
+    console.log(dataIPVA);
     onClose();
   }
 
@@ -121,13 +201,41 @@ export default function AddVehicleModal({
         </div>
 
         {pagaIPVA === true && (
-          <input
-            required
-            type="date"
-            value={dataIPVA}
-            onChange={(e) => setDataIPVA(e.target.value.toString())}
-            className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm"
-          />
+          <>
+            <input
+              required
+              type="date"
+              value={dataIPVA}
+              onChange={(e) => setDataIPVA(e.target.value.toString())}
+              className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm"
+            />
+
+            <div>
+              <p className="mb-1.5 text-sm font-medium text-[#0F172A]">
+                Este IPVA já foi pago?
+              </p>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 text-sm text-[#0F172A]">
+                  <input
+                    type="radio"
+                    name="pagaIPVA"
+                    checked={foiPagoUltimoIPVA === true}
+                    onChange={() => setFoiPagoUltimoIPVA(true)}
+                  />
+                  Sim
+                </label>
+                <label className="flex items-center gap-2 text-sm text-[#0F172A]">
+                  <input
+                    type="radio"
+                    name="foiPagoUltimoIPVA"
+                    checked={foiPagoUltimoIPVA === false}
+                    onChange={() => setFoiPagoUltimoIPVA(false)}
+                  />
+                  Não
+                </label>
+              </div>
+            </div>
+          </>
         )}
 
         <label className="flex items-center gap-2 text-sm text-[#0F172A]">
@@ -141,6 +249,32 @@ export default function AddVehicleModal({
           onChange={(e) => setDataLicenciamento(e.target.value.toString())}
           className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm"
         />
+
+        <div>
+          <p className="mb-1.5 text-sm font-medium text-[#0F172A]">
+            Este Licenciamento já foi pago?
+          </p>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-[#0F172A]">
+              <input
+                type="radio"
+                name="pagaIPVA"
+                checked={foiPagoUltimoLicenciamento === true}
+                onChange={() => setFoiPagoUltimoLicenciamento(true)}
+              />
+              Sim
+            </label>
+            <label className="flex items-center gap-2 text-sm text-[#0F172A]">
+              <input
+                type="radio"
+                name="foiPagoUltimoIPVA"
+                checked={foiPagoUltimoLicenciamento === false}
+                onChange={() => setFoiPagoUltimoLicenciamento(false)}
+              />
+              Não
+            </label>
+          </div>
+        </div>
 
         <button
           type="submit"

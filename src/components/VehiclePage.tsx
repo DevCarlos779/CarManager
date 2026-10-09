@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Vehicle } from "../types/typeVeiculos";
 
-type StatusObrigacao = "pago" | "pendente" | "proximo" | "atrasado";
+type StatusObrigacao = "em-dia" | "proximo" | "atrasado";
 
 type Obrigacao = {
   id: string;
@@ -14,7 +14,6 @@ type Obrigacao = {
   dataPagamento: string | null;
   status: StatusObrigacao;
 };
-
 
 const OBRIGACOES_INICIAIS: Obrigacao[] = [
   {
@@ -39,8 +38,7 @@ const STATUS_CONFIG: Record<
   StatusObrigacao,
   { label: string; className: string }
 > = {
-  pago: { label: "Pago", className: "bg-[#F0FDF4] text-[#16A34A]" },
-  pendente: { label: "Pendente", className: "bg-[#F1F5F9] text-[#64748B]" },
+  "em-dia": { label: "Pago", className: "bg-[#F0FDF4] text-[#16A34A]" },
   proximo: { label: "Próximo", className: "bg-[#FFFBEB] text-[#F59E0B]" },
   atrasado: { label: "Atrasado", className: "bg-[#FEF2F2] text-[#DC2626]" },
 };
@@ -50,9 +48,8 @@ interface VehicleDetails {
 }
 
 export default function VehicleDetails({ vehicle }: VehicleDetails) {
-  const [obrigacoes, setObrigacoes] = useState(OBRIGACOES_INICIAIS);
-  const [obrigacaoSelecionada, setObrigacaoSelecionada] =
-    useState<Obrigacao | null>(null);
+  const [obrigacoes, setObrigacoes] = useState(vehicle.obrigacoes);
+  useState<Obrigacao | null>(null);
   const [dataPagamento, setDataPagamento] = useState("");
 
   return (
@@ -104,12 +101,6 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
             {vehicle.renavam}
           </div>
         </div>
-        <div>
-          <div className="text-xs uppercase text-[#64748B]">Chassi</div>
-          <div className="text-sm font-semibold text-[#0F172A]">
-            {vehicle.chassi}
-          </div>
-        </div>
       </div>
 
       <div>
@@ -139,9 +130,6 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
                     {obrigacao.tipo}
                   </td>
                   <td className="px-4 py-3 text-[#0F172A]">
-                    {obrigacao.valor}
-                  </td>
-                  <td className="px-4 py-3 text-[#0F172A]">
                     {obrigacao.vencimento}
                   </td>
                   <td className="px-4 py-3 text-[#0F172A]">
@@ -155,7 +143,7 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {obrigacao.status !== "pago" && (
+                    {obrigacao.status !== "em-dia" && (
                       <button className="font-semibold text-[#0EA5E9] hover:underline">
                         Marcar como pago
                       </button>
@@ -167,54 +155,6 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
           </table>
         </div>
       </div>
-
-      {obrigacaoSelecionada && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/45">
-          <div className="w-[420px] rounded-xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-extrabold text-[#0F172A]">
-              Marcar {obrigacaoSelecionada.tipo} como pago
-            </h3>
-            <p className="mb-4 text-sm text-[#64748B]">
-              {vehicle.marca} {vehicle.modelo} · {vehicle.placa}
-            </p>
-
-            <label className="mb-1 block text-xs font-semibold text-[#64748B]">
-              Data do pagamento
-            </label>
-            <input
-              type="date"
-              value={dataPagamento}
-              onChange={(e) => setDataPagamento(e.target.value)}
-              className="mb-4 h-10 w-full rounded-lg border border-[#E2E8F0] px-3 text-sm"
-            />
-
-            <div className="mb-5 rounded-lg border border-[#BBF7D0] bg-[#F0FDF4] p-4">
-              <div className="text-xs font-bold uppercase text-[#16A34A]">
-                Próximo vencimento recalculado
-              </div>
-              <div className="mt-1 text-xl font-extrabold text-[#0F172A]">
-                {obrigacaoSelecionada.vencimento}
-              </div>
-              <div className="mt-2 text-xs text-[#64748B]">
-                Renovação anual: nova data = mesmo dia/mês do vencimento
-                original, no ano seguinte.
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button className="rounded-lg border border-[#E2E8F0] px-4 py-2 text-sm font-semibold text-[#0F172A]">
-                Cancelar
-              </button>
-              <button
-                disabled={!dataPagamento}
-                className="rounded-lg bg-[#1E3A8A] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                Confirmar pagamento
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
