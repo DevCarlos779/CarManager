@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { Vehicle } from "../types/typeVeiculos";
 import { Obrigacao } from "../types/typeObrigacoes";
+import { marcarComoPago } from "../app/actions/veiculos";
 
 type StatusObrigacao = "em-dia" | "proximo" | "atrasado";
 
@@ -11,7 +11,7 @@ const STATUS_CONFIG: Record<
   StatusObrigacao,
   { label: string; className: string }
 > = {
-  "em-dia": { label: "Pago", className: "bg-[#F0FDF4] text-[#16A34A]" },
+  "em-dia": { label: "Em dia", className: "bg-[#F0FDF4] text-[#16A34A]" },
   proximo: { label: "Próximo", className: "bg-[#FFFBEB] text-[#F59E0B]" },
   atrasado: { label: "Atrasado", className: "bg-[#FEF2F2] text-[#DC2626]" },
 };
@@ -21,10 +21,6 @@ interface VehicleDetails {
 }
 
 export default function VehicleDetails({ vehicle }: VehicleDetails) {
-  const [obrigacoes, setObrigacoes] = useState<Obrigacao[]>(vehicle.obrigacoes);
-  useState<Obrigacao | null>(null);
-  const [dataPagamento, setDataPagamento] = useState("");
-
   function calcularStatus(obrigacao: Obrigacao) {
     const [dia, mes, ano] = obrigacao.vencimento.split("/").map(Number);
     const anoCompleto = ano < 100 ? 2000 + ano : ano;
@@ -54,9 +50,10 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
     return obrigacaoFormatada;
   }
 
-  const arrayObrigacoesFormatadas = obrigacoes.map((obrigacao) =>
-    calcularStatus(obrigacao),
-  );
+  const arrayObrigacoesFormatadas = vehicle.obrigacoes.map((obrigacao) => {
+    console.log(obrigacao);
+    return calcularStatus(obrigacao);
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -149,7 +146,10 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {obrigacao.status !== "em-dia" && (
-                      <button className="font-semibold text-[#0EA5E9] hover:underline">
+                      <button
+                        onClick={() => marcarComoPago(vehicle.id, obrigacao.id)}
+                        className="font-semibold text-[#0EA5E9] hover:underline cursor-pointer"
+                      >
                         Marcar como pago
                       </button>
                     )}

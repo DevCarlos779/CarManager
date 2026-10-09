@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  Car,
-  CreditCard,
-  TriangleAlert,
-  Settings,
-} from "lucide-react";
+import { LayoutDashboard, Car } from "lucide-react";
 
 const navigation = [
   {
@@ -21,21 +15,6 @@ const navigation = [
     href: "/veiculos",
     icon: Car,
   },
-  {
-    name: "Pagamentos",
-    href: "/pagamentos",
-    icon: CreditCard,
-  },
-  {
-    name: "Pendências",
-    href: "/pendencias",
-    icon: TriangleAlert,
-  },
-  {
-    name: "Configurações",
-    href: "/configuracoes",
-    icon: Settings,
-  },
 ];
 
 export function Sidebar() {
@@ -44,13 +23,9 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 flex h-screen w-64 flex-col bg-[#243F8F] px-4 py-6 text-white">
       <div className="mb-8 px-3">
-        <h1 className="text-xl font-bold tracking-tight">
-          CarManager
-        </h1>
+        <h1 className="text-xl font-bold tracking-tight">CarManager</h1>
 
-        <p className="mt-1 text-xs text-blue-200">
-          Gestão de veículos
-        </p>
+        <p className="mt-1 text-xs text-blue-200">Gestão de veículos</p>
       </div>
       <nav className="flex flex-1 flex-col gap-1">
         {navigation.map((item) => {
@@ -85,13 +60,9 @@ export function Sidebar() {
           </div>
 
           <div>
-            <p className="text-sm font-medium">
-              Carlos
-            </p>
+            <p className="text-sm font-medium">Carlos</p>
 
-            <p className="text-xs text-blue-200">
-              Minha conta
-            </p>
+            <p className="text-xs text-blue-200">Minha conta</p>
           </div>
         </div>
       </div>
