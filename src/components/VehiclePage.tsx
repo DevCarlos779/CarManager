@@ -3,36 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Vehicle } from "../types/typeVeiculos";
+import { Obrigacao } from "../types/typeObrigacoes";
 
 type StatusObrigacao = "em-dia" | "proximo" | "atrasado";
-
-type Obrigacao = {
-  id: string;
-  tipo: string;
-  valor: number;
-  vencimento: string; // formato DD/MM/AAAA
-  dataPagamento: string | null;
-  status: StatusObrigacao;
-};
-
-const OBRIGACOES_INICIAIS: Obrigacao[] = [
-  {
-    id: "1",
-    tipo: "IPVA",
-    valor: 1250,
-    vencimento: "10/09/2026",
-    dataPagamento: null,
-    status: "atrasado",
-  },
-  {
-    id: "2",
-    tipo: "Licenciamento",
-    valor: 180,
-    vencimento: "05/10/2026",
-    dataPagamento: null,
-    status: "proximo",
-  },
-];
 
 const STATUS_CONFIG: Record<
   StatusObrigacao,
@@ -48,9 +21,42 @@ interface VehicleDetails {
 }
 
 export default function VehicleDetails({ vehicle }: VehicleDetails) {
-  const [obrigacoes, setObrigacoes] = useState(vehicle.obrigacoes);
+  const [obrigacoes, setObrigacoes] = useState<Obrigacao[]>(vehicle.obrigacoes);
   useState<Obrigacao | null>(null);
   const [dataPagamento, setDataPagamento] = useState("");
+
+  function calcularStatus(obrigacao: Obrigacao) {
+    const [dia, mes, ano] = obrigacao.vencimento.split("/").map(Number);
+    const anoCompleto = ano < 100 ? 2000 + ano : ano;
+    const vencimento = new Date(anoCompleto, mes - 1, dia);
+
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const umMesAntes = new Date(vencimento);
+    umMesAntes.setMonth(umMesAntes.getMonth() - 1);
+
+    let statusFormatado: StatusObrigacao;
+
+    if (hoje < umMesAntes) {
+      statusFormatado = "em-dia";
+    } else if (hoje > vencimento) {
+      statusFormatado = "atrasado";
+    } else {
+      statusFormatado = "proximo";
+    }
+
+    const obrigacaoFormatada = {
+      ...obrigacao,
+      status: statusFormatado,
+    };
+
+    return obrigacaoFormatada;
+  }
+
+  const arrayObrigacoesFormatadas = obrigacoes.map((obrigacao) =>
+    calcularStatus(obrigacao),
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -113,7 +119,6 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
             <thead>
               <tr className="border-b border-[#E2E8F0] bg-[#F8FAFC] text-left text-xs font-semibold uppercase tracking-wide text-[#64748B]">
                 <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Valor</th>
                 <th className="px-4 py-3">Vencimento</th>
                 <th className="px-4 py-3">Data de pagamento</th>
                 <th className="px-4 py-3">Status</th>
@@ -121,7 +126,7 @@ export default function VehicleDetails({ vehicle }: VehicleDetails) {
               </tr>
             </thead>
             <tbody>
-              {obrigacoes.map((obrigacao) => (
+              {arrayObrigacoesFormatadas.map((obrigacao) => (
                 <tr
                   key={obrigacao.id}
                   className="border-b border-[#E2E8F0] last:border-0"
