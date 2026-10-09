@@ -3,9 +3,16 @@
 import Link from "next/link";
 import { Vehicle } from "../types/typeVeiculos";
 import { Obrigacao } from "../types/typeObrigacoes";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import AddVehicleModal from "./AddVehicleModal";
-import { criarVeiculo } from "../app/actions/veiculos";
+import {
+  criarVeiculo,
+  editarVeiculo,
+  excluirVeiculo,
+} from "../app/actions/veiculos";
+
+import { Pencil, Trash2 } from "lucide-react";
+import EditVehicleModal from "./EditVehicleModal";
 
 type Status = "atrasado" | "proximo" | "em-dia";
 
@@ -43,7 +50,12 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [ordenacao, setOrdenacao] = useState("nome");
-  const [modalAberto, setModalAberto] = useState(false);
+  const [modalAdicionarVeiculoAberto, setModalAdicionarVeiculoAberto] =
+    useState(false);
+
+  const [veiculoEditando, setVeiculoEditando] = useState<Vehicle | null>(null);
+
+  const [isPending, startTransition] = useTransition();
 
   const filteredVehiclesIsNearExpiry = vehicles.filter((vehicle) => {
     return vehicle.obrigacoes.some((obrigacao) => {
@@ -66,12 +78,6 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
       (obrigacao) => obrigacao.status == "atrasado",
     );
   });
-
-  const filteredVehiclesIsPaid = vehicles.filter(
-    (vehicle) =>
-      !filteredVehiclesIsExpiry.includes(vehicle) &&
-      !filteredVehiclesIsNearExpiry.includes(vehicle),
-  );
 
   function getProximaObrigacao(
     vehicle: Vehicle,
@@ -159,6 +165,17 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
       );
     });
 
+  function handleExcluir(v: VehicleFiltered) {
+    const confirmou = confirm(
+      `Excluir ${v.marca} ${v.modelo}? Essa ação não pode ser desfeita.`,
+    );
+    if (!confirmou) return;
+
+    startTransition(async () => {
+      await excluirVeiculo(v.id);
+    });
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-start justify-between gap-4">
@@ -170,7 +187,7 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
         </div>
 
         <button
-          onClick={() => setModalAberto(true)}
+          onClick={() => setModalAdicionarVeiculoAberto(true)}
           className="shrink-0 rounded-lg bg-[#1E3A8A] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1E3A8A]/90"
         >
           + Adicionar veículo
@@ -245,13 +262,36 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
                   <td className="px-4 py-3 text-[#0F172A]">
                     {v.qtdPendencias}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <Link
-                      href={`/veiculos/${v.id}`}
-                      className="font-semibold text-[#0EA5E9] hover:underline"
-                    >
-                      Ver detalhes
-                    </Link>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-3">
+                      <Link
+                        href={`/veiculos/${v.id}`}
+                        className="font-semibold text-[#0EA5E9] hover:underline"
+                      >
+                        Ver detalhes
+                      </Link>
+
+                      <button
+                        type="button"
+                        title="Editar veículo"
+                        aria-label={`Editar ${v.marca} ${v.modelo}`}
+                        className="cursor-pointer rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-[#EFF6FF] hover:text-[#1E3A8A]"
+                        onClick={() => setVeiculoEditando(v)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        title="Excluir veículo"
+                        aria-label={`Excluir ${v.marca} ${v.modelo}`}
+                        className="cursor-pointer rounded-md p-1.5 text-[#64748B] transition-colors hover:bg-[#FEF2F2] hover:text-[#DC2626]"
+                        disabled={isPending}
+                        onClick={() => handleExcluir(v)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );
@@ -271,12 +311,23 @@ export default function Vehicles({ vehicles }: VehiclesPageProps) {
         </table>
       </div>
       <AddVehicleModal
-        isOpen={modalAberto}
-        onClose={() => setModalAberto(false)}
+        isOpen={modalAdicionarVeiculoAberto}
+        onClose={() => setModalAdicionarVeiculoAberto(false)}
         onSave={async (novoVeiculo) => {
           await criarVeiculo(novoVeiculo);
         }}
       />
+      {veiculoEditando && (
+        <EditVehicleModal
+          key={veiculoEditando.id}
+          isOpen
+          vehicle={veiculoEditando}
+          onClose={() => setVeiculoEditando(null)}
+          onSave={async (dados) => {
+            await editarVeiculo(veiculoEditando.id, dados);
+          }}
+        />
+      )}
     </div>
   );
 }

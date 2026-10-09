@@ -31,88 +31,79 @@ function formatarBR(data: Date): string {
   return `${dia}/${mes}/${data.getFullYear()}`;
 }
 
-function montarObrigacao(
+function brParaISO(dataBR: string): string {
+  const [dia, mes, ano] = dataBR.split("/");
+  const anoCompleto = ano.length === 2 ? `20${ano}` : ano;
+  return `${anoCompleto}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+}
+
+function atualizarObrigacao(
+  original: Obrigacao | undefined,
   tipo: Obrigacao["tipo"],
   dataISO: string,
-  foiPago: boolean,
 ): Obrigacao {
   const [ano, mes, dia] = dataISO.split("-").map(Number);
-
-  // Se já foi pago, o vencimento que importa é o do ano seguinte
-  const vencimento = new Date(foiPago ? ano + 1 : ano, mes - 1, dia);
+  const vencimento = new Date(ano, mes - 1, dia);
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
   return {
-    id: crypto.randomUUID(),
+    id: original?.id ?? crypto.randomUUID(),
     tipo,
     vencimento: formatarBR(vencimento),
-    dataPagamento: null,
+    dataPagamento: original?.dataPagamento ?? null,
     status: hoje > vencimento ? "atrasado" : "em-dia",
   };
 }
 
-interface AddVehicleModalProps {
+interface EditVehicleModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (vehicle: Omit<Vehicle, "id">) => void;
+  vehicle: Vehicle;
 }
 
-export default function AddVehicleModal({
+export default function EditVehicleModal({
   isOpen,
   onClose,
   onSave,
-}: AddVehicleModalProps) {
-  const [marca, setMarca] = useState("");
-  const [modelo, setModelo] = useState("");
-  const [placa, setPlaca] = useState("");
-  const [cor, setCor] = useState("");
-  const [renavam, setRenavam] = useState("");
-  const [ano, setAno] = useState("");
-  const [pagaIPVA, setPagaIPVA] = useState<boolean | null>(null);
-  const [dataIPVA, setDataIPVA] = useState("");
-  const [foiPagoUltimoIPVA, setFoiPagoUltimoIPVA] = useState(false);
-  const [dataLicenciamento, setDataLicenciamento] = useState("");
-  const [foiPagoUltimoLicenciamento, setFoiPagoUltimoLicenciamento] =
-    useState(false);
+  vehicle,
+}: EditVehicleModalProps) {
+  const ipvaAtual = vehicle.obrigacoes.find((o) => o.tipo === "IPVA");
+  const licenciamentoAtual = vehicle.obrigacoes.find(
+    (o) => o.tipo === "Licenciamento",
+  );
+
+  const originalIPVA = ipvaAtual ? brParaISO(ipvaAtual.vencimento) : "";
+  const originalLic = licenciamentoAtual
+    ? brParaISO(licenciamentoAtual.vencimento)
+    : "";
+
+  const [marca, setMarca] = useState(vehicle.marca);
+  const [modelo, setModelo] = useState(vehicle.modelo);
+  const [placa, setPlaca] = useState(vehicle.placa);
+  const [cor, setCor] = useState(vehicle.cor ?? "");
+  const [renavam, setRenavam] = useState(vehicle.renavam);
+  const [ano, setAno] = useState(String(vehicle.ano));
+  const [pagaIPVA, setPagaIPVA] = useState(ipvaAtual !== undefined);
+  const [dataIPVA, setDataIPVA] = useState(originalIPVA);
+  const [dataLicenciamento, setDataLicenciamento] = useState(originalLic);
 
   const [erro, setErro] = useState("");
 
   const anoAtual = new Date().getFullYear();
-  const dataMinima = `${anoAtual}-01-01`;
+  const dataMinimaPadrao = `${anoAtual}-01-01`;
   const dataMaxima = `${anoAtual + 1}-12-31`;
-  const dataValida = (data: string) => data >= dataMinima && data <= dataMaxima;
 
-  function resetarFormulario() {
-    setMarca("");
-    setModelo("");
-    setPlaca("");
-    setCor("");
-    setRenavam("");
-    setAno("");
-    setPagaIPVA(null);
-    setDataIPVA("");
-    setFoiPagoUltimoIPVA(false);
-    setDataLicenciamento("");
-    setFoiPagoUltimoLicenciamento(false);
-    setErro("");
-  }
+  const menorData = (original: string) =>
+    original && original < dataMinimaPadrao ? original : dataMinimaPadrao;
+
+  const dataValida = (data: string, original: string) =>
+    data >= menorData(original) && data <= dataMaxima;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    if (pagaIPVA === null) {
-      setErro("Informe se o carro paga IPVA.");
-      return;
-    }
-
-    if ((pagaIPVA && !dataValida(dataIPVA)) || !dataValida(dataLicenciamento)) {
-      setErro(
-        `As datas de vencimento devem estar entre ${anoAtual} e ${anoAtual + 1}.`,
-      );
-      return;
-    }
 
     if (
       !marca.trim() ||
@@ -124,6 +115,14 @@ export default function AddVehicleModal({
       (pagaIPVA && !dataIPVA)
     ) {
       setErro("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    if (
+      !dataValida(dataLicenciamento, originalLic) ||
+      (pagaIPVA && !dataValida(dataIPVA, originalIPVA))
+    ) {
+      setErro(`As datas de vencimento devem ser até ${anoAtual + 1}.`);
       return;
     }
 
@@ -143,13 +142,11 @@ export default function AddVehicleModal({
     }
 
     const obrigacoes: Obrigacao[] = [
-      ...(pagaIPVA
-        ? [montarObrigacao("IPVA", dataIPVA, foiPagoUltimoIPVA)]
-        : []),
-      montarObrigacao(
+      ...(pagaIPVA ? [atualizarObrigacao(ipvaAtual, "IPVA", dataIPVA)] : []),
+      atualizarObrigacao(
+        licenciamentoAtual,
         "Licenciamento",
         dataLicenciamento,
-        foiPagoUltimoLicenciamento,
       ),
     ];
 
@@ -163,12 +160,11 @@ export default function AddVehicleModal({
       obrigacoes,
     } as Omit<Vehicle, "id">);
 
-    resetarFormulario();
     onClose();
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Adicionar veículo">
+    <Modal isOpen={isOpen} onClose={onClose} title="Editar veículo">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {erro && <p className="text-sm text-[#DC2626]">{erro}</p>}
 
@@ -248,94 +244,42 @@ export default function AddVehicleModal({
           </div>
         </div>
 
-        {pagaIPVA === true && (
+        {pagaIPVA && (
           <>
             <label className="text-sm font-medium text-[#0F172A]">
-              Data IPVA
+              Data de vencimento do IPVA
             </label>
             <input
               required
               type="date"
-              min={dataMinima}
+              min={menorData(originalIPVA)}
               max={dataMaxima}
               value={dataIPVA}
               onChange={(e) => setDataIPVA(e.target.value)}
               className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm"
             />
-
-            <div>
-              <p className="mb-1.5 text-sm font-medium text-[#0F172A]">
-                Este IPVA já foi pago?
-              </p>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm text-[#0F172A]">
-                  <input
-                    type="radio"
-                    name="foiPagoUltimoIPVA"
-                    checked={foiPagoUltimoIPVA === true}
-                    onChange={() => setFoiPagoUltimoIPVA(true)}
-                  />
-                  Sim
-                </label>
-                <label className="flex items-center gap-2 text-sm text-[#0F172A]">
-                  <input
-                    type="radio"
-                    name="foiPagoUltimoIPVA"
-                    checked={foiPagoUltimoIPVA === false}
-                    onChange={() => setFoiPagoUltimoIPVA(false)}
-                  />
-                  Não
-                </label>
-              </div>
-            </div>
           </>
         )}
 
         <label className="text-sm font-medium text-[#0F172A]">
-          Data Licenciamento
+          Data de vencimento do Licenciamento
         </label>
 
         <input
           required
           type="date"
-          min={dataMinima}
+          min={menorData(originalLic)}
           max={dataMaxima}
           value={dataLicenciamento}
           onChange={(e) => setDataLicenciamento(e.target.value)}
           className="h-10 rounded-lg border border-[#E2E8F0] px-3 text-sm"
         />
 
-        <div>
-          <p className="mb-1.5 text-sm font-medium text-[#0F172A]">
-            Este Licenciamento já foi pago?
-          </p>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 text-sm text-[#0F172A]">
-              <input
-                type="radio"
-                name="foiPagoUltimoLicenciamento"
-                checked={foiPagoUltimoLicenciamento === true}
-                onChange={() => setFoiPagoUltimoLicenciamento(true)}
-              />
-              Sim
-            </label>
-            <label className="flex items-center gap-2 text-sm text-[#0F172A]">
-              <input
-                type="radio"
-                name="foiPagoUltimoLicenciamento"
-                checked={foiPagoUltimoLicenciamento === false}
-                onChange={() => setFoiPagoUltimoLicenciamento(false)}
-              />
-              Não
-            </label>
-          </div>
-        </div>
-
         <button
           type="submit"
           className="mt-2 h-10 cursor-pointer rounded-lg bg-[#1E3A8A] text-sm font-semibold text-white"
         >
-          Salvar
+          Salvar alterações
         </button>
       </form>
     </Modal>

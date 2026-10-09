@@ -7,7 +7,7 @@ import VehicleCard from "../components/VehicleCard";
 import { Vehicle } from "../types/typeVeiculos";
 
 interface HomeProps {
-    vehicles: Vehicle[];
+  vehicles: Vehicle[];
 }
 
 type activeFilterType = "todos" | "atrasado" | "proximo" | "em-dia";
@@ -30,8 +30,7 @@ const statusStyles = {
   },
 };
 
-export default function Home({vehicles}: HomeProps) {
-
+export default function Home({ vehicles }: HomeProps) {
   const [activeFilter, setActiveFilter] = useState<activeFilterType>("todos");
 
   const filteredVehiclesIsNearExpiry = vehicles.filter((vehicle) => {
@@ -51,12 +50,15 @@ export default function Home({vehicles}: HomeProps) {
   });
 
   const filteredVehiclesIsExpiry = vehicles.filter((vehicle) => {
-    return vehicle.obrigacoes.some((obrigacao) => obrigacao.status == "atrasado");
+    return vehicle.obrigacoes.some(
+      (obrigacao) => obrigacao.status == "atrasado",
+    );
   });
 
-  const filteredVehiclesIsPaid = vehicles.filter((vehicle) =>
-    !filteredVehiclesIsExpiry.includes(vehicle) &&
-    !filteredVehiclesIsNearExpiry.includes(vehicle)
+  const filteredVehiclesIsPaid = vehicles.filter(
+    (vehicle) =>
+      !filteredVehiclesIsExpiry.includes(vehicle) &&
+      !filteredVehiclesIsNearExpiry.includes(vehicle),
   );
 
   const qtdVehiclesIsNearExpiry = filteredVehiclesIsNearExpiry.length;
@@ -64,11 +66,14 @@ export default function Home({vehicles}: HomeProps) {
   const qtdVehiclesIsPaid = filteredVehiclesIsPaid.length;
 
   const filteredVehicles =
-    activeFilter === "todos" ? vehicles :
-    activeFilter === "em-dia" ? filteredVehiclesIsPaid :
-    activeFilter === "atrasado" ? filteredVehiclesIsExpiry :
-    filteredVehiclesIsNearExpiry;
-  
+    activeFilter === "todos"
+      ? vehicles
+      : activeFilter === "em-dia"
+        ? filteredVehiclesIsPaid
+        : activeFilter === "atrasado"
+          ? filteredVehiclesIsExpiry
+          : filteredVehiclesIsNearExpiry;
+
   return (
     <div className="min-h-screen">
       <header className="mb-8 flex items-start justify-between">
@@ -117,56 +122,47 @@ export default function Home({vehicles}: HomeProps) {
         </div>
 
         <div className="mb-4 flex flex-wrap gap-2">
-          <FilterButton active={activeFilter === "todos"} onClick={() => setActiveFilter("todos")}>
+          <FilterButton
+            active={activeFilter === "todos"}
+            onClick={() => setActiveFilter("todos")}
+          >
             Todos
           </FilterButton>
 
-          <FilterButton active={activeFilter === "atrasado"} onClick={() => setActiveFilter("atrasado")}>
+          <FilterButton
+            active={activeFilter === "atrasado"}
+            onClick={() => setActiveFilter("atrasado")}
+          >
             Atrasados
           </FilterButton>
 
-          <FilterButton active={activeFilter === "proximo"} onClick={() => setActiveFilter("proximo")}>
+          <FilterButton
+            active={activeFilter === "proximo"}
+            onClick={() => setActiveFilter("proximo")}
+          >
             Próximos
           </FilterButton>
 
-          <FilterButton active={activeFilter === "em-dia"} onClick={() => setActiveFilter("em-dia")}>
+          <FilterButton
+            active={activeFilter === "em-dia"}
+            onClick={() => setActiveFilter("em-dia")}
+          >
             Em dia
           </FilterButton>
         </div>
 
         <div className="space-y-3">
-            {filteredVehicles.length > 0 ?           
+          {filteredVehicles.length > 0 ? (
             filteredVehicles.map((vehicle) => {
-                const obrigacao =
-                vehicle.obrigacoes.find(
-                    (obrigacao) => obrigacao.status === "atrasado"
-                ) ??
-                vehicle.obrigacoes.find(
-                    (obrigacao) => obrigacao.status === "proximo"
-                );
-
-                const styles =
-                obrigacao?.status === "atrasado"
-                    ? statusStyles.danger
-                    : obrigacao?.status === "proximo"
-                    ? statusStyles.warning
-                    : statusStyles.success;
-
-                return (
-                <VehicleCard
-                    key={vehicle.id}
-                    vehicle={vehicle}
-                    styles={styles}
-                />
-                );
-            }) : (
-              <p className="py-12 text-center text-sm text-[#64748B]">
-                Nenhum veiculo encontrado
-              </p>)
-          }
+              return <VehicleCard key={vehicle.id} vehicle={vehicle} />;
+            })
+          ) : (
+            <p className="py-12 text-center text-sm text-[#64748B]">
+              Nenhum veiculo encontrado
+            </p>
+          )}
         </div>
       </section>
     </div>
   );
 }
-
