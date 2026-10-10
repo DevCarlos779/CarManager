@@ -33,7 +33,12 @@ const statusStyles = {
 export default function Home({ vehicles }: HomeProps) {
   const [activeFilter, setActiveFilter] = useState<activeFilterType>("todos");
 
+  const filteredVehiclesIsExpiry = vehicles.filter((vehicle) =>
+    vehicle.obrigacoes.some((obrigacao) => obrigacao.status == "atrasado"),
+  );
+
   const filteredVehiclesIsNearExpiry = vehicles.filter((vehicle) => {
+    if (filteredVehiclesIsExpiry.includes(vehicle)) return false;
     return vehicle.obrigacoes.some((obrigacao) => {
       const [dia, mes, ano] = obrigacao.vencimento.split("/").map(Number);
       const anoCompleto = ano < 100 ? 2000 + ano : ano;
@@ -47,12 +52,6 @@ export default function Home({ vehicles }: HomeProps) {
 
       return hoje >= umMesAntes && hoje < vencimento;
     });
-  });
-
-  const filteredVehiclesIsExpiry = vehicles.filter((vehicle) => {
-    return vehicle.obrigacoes.some(
-      (obrigacao) => obrigacao.status == "atrasado",
-    );
   });
 
   const filteredVehiclesIsPaid = vehicles.filter(
